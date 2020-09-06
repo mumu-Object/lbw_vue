@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+<div id="root">
+  <p>{{name}}</p>
+  <h1 l-text="age" @click="alert"></h1>
+  <div l-html="html"></div>
+  <input type="text" l-model="html">
+</div>
+<script src="lbwVue.js"></script>
+<script>
+  var vue = new lbwVue({
+    el: '#root',
+    data: {
+      name: 'lbw',
+      age: 19,
+      zs: {
+        js: '1232'
+      },
+      html: '<h1>在吗</h1>'
+    },
+    created: function () {
+      setTimeout(function () {
+        vue.name = 'mumu'
+      }, 3000)
+    },
+    methods: {
+      alert: function () {
+        console.log(this.name = 'baaadf')
+      },
+      input(e) {
+        this.name =e.target.value
+      }
+    }
+  });
+</script>
+</body>
+</html>
