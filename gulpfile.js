@@ -13,8 +13,8 @@ const js = () => {
 const minJs = () => {
   return src('./src/*.js')
     .pipe(babel())
-    .pipe(uglify())
     .pipe(dest('dist'))
+    .pipe(uglify())
     .pipe(rename({
       suffix: '.min'
     }))

@@ -1,1 +1,301 @@
-"use strict";function _typeof(e){return(_typeof="function"==typeof Symbol&&"symbol"==typeof Symbol.iterator?function(e){return typeof e}:function(e){return e&&"function"==typeof Symbol&&e.constructor===Symbol&&e!==Symbol.prototype?"symbol":typeof e})(e)}function _classCallCheck(e,t){if(!(e instanceof t))throw new TypeError("Cannot call a class as a function")}function _defineProperties(e,t){for(var n=0;n<t.length;n++){var i=t[n];i.enumerable=i.enumerable||!1,i.configurable=!0,"value"in i&&(i.writable=!0),Object.defineProperty(e,i.key,i)}}function _createClass(e,t,n){return t&&_defineProperties(e.prototype,t),n&&_defineProperties(e,n),e}var lbwVue=function(){function t(e){_classCallCheck(this,t),this.$options=e,this.$data=e.data,this.observe(this.$data),new Compile(e.el,this),e.created&&e.created.call(this)}return _createClass(t,[{key:"observe",value:function(t){var n=this;t&&"object"===_typeof(t)&&Object.keys(t).forEach(function(e){n.defineReactive(t,e,t[e]),n.proxyData(e)})}},{key:"defineReactive",value:function(e,t,n){this.observe(n);var i=new Dep;Object.defineProperty(e,t,{get:function(){return Dep.target&&i.addDep(Dep.target),n},set:function(e){e!==n&&(n=e,i.notify())}})}},{key:"proxyData",value:function(t){Object.defineProperty(this,t,{get:function(){return this.$data[t]},set:function(e){this.$data[t]=e}})}}]),t}(),Dep=function(){function e(){_classCallCheck(this,e),this.deps=[]}return _createClass(e,[{key:"addDep",value:function(e){this.deps.push(e)}},{key:"notify",value:function(){this.deps.forEach(function(e){return e.update()})}}]),e}(),Watcher=function(){function i(e,t,n){_classCallCheck(this,i),this.vm=e,this.key=t,this.cb=n,(Dep.target=this).vm[this.key],Dep.target=null}return _createClass(i,[{key:"update",value:function(){this.cb.call(this.vm,this.vm[this.key])}}]),i}(),Compile=function(){function n(e,t){_classCallCheck(this,n),this.$el=document.querySelector(e),this.$vm=t,this.$el&&(this.$fragment=this.node2Fragment(this.$el),this.compile(this.$fragment),this.$el.appendChild(this.$fragment))}return _createClass(n,[{key:"node2Fragment",value:function(e){for(var t,n=document.createDocumentFragment();t=e.firstChild;)n.appendChild(t);return n}},{key:"compile",value:function(e){var r=this,t=e.childNodes;Array.from(t).forEach(function(a){var e;r.isElement(a)?(e=a.attributes,Array.from(e).forEach(function(e){var t,n,i=e.name,o=e.value;r.isDirective(i)&&(t=i.substring(2),r[t]&&r[t](a,r.$vm,o)),r.isEvent(i)&&(n=i.substring(1),r.eventHandle(a,r.$vm,o,n))})):r.isInterpolation(a)&&r.compileText(a),a.childNodes&&0<a.childNodes.length&&r.compile(a)})}},{key:"compileText",value:function(e){this.update(e,this.$vm,RegExp.$1,"text")}},{key:"update",value:function(t,e,n,i){var o=this[i+"Updater"];o&&o(t,e[n]),new Watcher(e,n,function(e){o&&o(t,e)})}},{key:"html",value:function(e,t,n){this.update(e,t,n,"html")}},{key:"htmlUpdater",value:function(e,t){e.innerHTML=t}},{key:"text",value:function(e,t,n){this.update(e,t,n,"text")}},{key:"textUpdater",value:function(e,t){e.textContent=t}},{key:"model",value:function(e,t,n){this.update(e,t,n,"model"),e.addEventListener("input",function(e){t[n]=e.target.value})}},{key:"modelUpdater",value:function(e,t){e.value=t}},{key:"eventHandle",value:function(e,t,n,i){var o=t.$options.methods&&t.$options.methods[n];i&&o&&e.addEventListener(i,o.bind(t))}},{key:"isElement",value:function(e){return 1===e.nodeType}},{key:"isInterpolation",value:function(e){return 3===e.nodeType&&/\{\{(.*)\}\}/.test(e.textContent)}},{key:"isDirective",value:function(e){return 0===e.indexOf("l-")}},{key:"isEvent",value:function(e){return 0===e.indexOf("@")}}]),n}();
+"use strict";
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var lbwVue = /*#__PURE__*/function () {
+  function lbwVue(options) {
+    _classCallCheck(this, lbwVue);
+
+    this.$options = options;
+    this.$data = options.data; // 数据响应化
+
+    this.observe(this.$data); // 开启编译器
+
+    new Compile(options.el, this);
+
+    if (options.created) {
+      options.created.call(this);
+    }
+  }
+
+  _createClass(lbwVue, [{
+    key: "observe",
+    value: function observe(value) {
+      var _this = this;
+
+      if (!value || _typeof(value) !== 'object') {
+        return;
+      } // 遍历该对象
+
+
+      Object.keys(value).forEach(function (key) {
+        _this.defineReactive(value, key, value[key]);
+
+        _this.proxyData(key);
+      });
+    } //  数据响应化
+
+  }, {
+    key: "defineReactive",
+    value: function defineReactive(obj, key, val) {
+      // 递归解决对象数组嵌套问题
+      this.observe(val);
+      var dep = new Dep(); // 添加get set函数
+
+      Object.defineProperty(obj, key, {
+        get: function get() {
+          Dep.target && dep.addDep(Dep.target);
+          return val;
+        },
+        set: function set(newVal) {
+          // 如果新值与老值相等 返回
+          if (newVal === val) return;
+          val = newVal;
+          dep.notify();
+        }
+      });
+    }
+  }, {
+    key: "proxyData",
+    value: function proxyData(key) {
+      Object.defineProperty(this, key, {
+        get: function get() {
+          return this.$data[key];
+        },
+        set: function set(newVal) {
+          this.$data[key] = newVal;
+        }
+      });
+    }
+  }]);
+
+  return lbwVue;
+}(); // 用来管理watcher
+
+
+var Dep = /*#__PURE__*/function () {
+  function Dep() {
+    _classCallCheck(this, Dep);
+
+    // 依赖数组
+    this.deps = [];
+  } // 添加依赖
+
+
+  _createClass(Dep, [{
+    key: "addDep",
+    value: function addDep(dep) {
+      this.deps.push(dep);
+    }
+  }, {
+    key: "notify",
+    value: function notify() {
+      // 通知依赖进行更新
+      this.deps.forEach(function (dep) {
+        return dep.update();
+      });
+    }
+  }]);
+
+  return Dep;
+}(); // 观察者
+
+
+var Watcher = /*#__PURE__*/function () {
+  function Watcher(vm, key, cb) {
+    _classCallCheck(this, Watcher);
+
+    this.vm = vm;
+    this.key = key;
+    this.cb = cb; // 将当前watcher的实例指定到Dep静态属性target
+
+    Dep.target = this; // 触发getter 添加依赖
+
+    this.vm[this.key];
+    Dep.target = null;
+  }
+
+  _createClass(Watcher, [{
+    key: "update",
+    value: function update() {
+      this.cb.call(this.vm, this.vm[this.key]);
+    }
+  }]);
+
+  return Watcher;
+}(); // 编译器
+
+
+var Compile = /*#__PURE__*/function () {
+  function Compile(el, vm) {
+    _classCallCheck(this, Compile);
+
+    this.$el = document.querySelector(el);
+    this.$vm = vm; //   编译
+
+    if (this.$el) {
+      // 转换容器内容为片段
+      this.$fragment = this.node2Fragment(this.$el); // 执行编译
+
+      this.compile(this.$fragment); //  将编译完的html结果追加至$el
+
+      this.$el.appendChild(this.$fragment);
+    }
+  } // 将宿主元素中代码片段拿出来遍历,可以优化性能
+
+
+  _createClass(Compile, [{
+    key: "node2Fragment",
+    value: function node2Fragment(el) {
+      var frag = document.createDocumentFragment(); //  将el中所有的子元素搬家至frag中
+
+      var child;
+
+      while (child = el.firstChild) {
+        frag.appendChild(child);
+      }
+
+      return frag;
+    } // 编译过程
+
+  }, {
+    key: "compile",
+    value: function compile(el) {
+      var _this2 = this;
+
+      var childNodes = el.childNodes;
+      Array.from(childNodes).forEach(function (node) {
+        // 类型判断
+        if (_this2.isElement(node)) {
+          // 元素
+          var nodeAttrs = node.attributes; // 查找 l- @ :
+
+          Array.from(nodeAttrs).forEach(function (attr) {
+            var attrName = attr.name; // 属性名
+
+            var exp = attr.value; // 属性值
+
+            if (_this2.isDirective(attrName)) {
+              //  l-text
+              var dir = attrName.substring(2); //  执行指令
+
+              _this2[dir] && _this2[dir](node, _this2.$vm, exp); //
+            }
+
+            if (_this2.isEvent(attrName)) {
+              var _dir = attrName.substring(1); // 绑定事件
+
+
+              _this2.eventHandle(node, _this2.$vm, exp, _dir);
+            }
+          });
+        } else if (_this2.isInterpolation(node)) {
+          // 文本
+          _this2.compileText(node);
+        } //  递归字节点
+
+
+        if (node.childNodes && node.childNodes.length > 0) {
+          _this2.compile(node);
+        }
+      });
+    } // 编译文本
+
+  }, {
+    key: "compileText",
+    value: function compileText(node) {
+      this.update(node, this.$vm, RegExp.$1, 'text');
+    } // 更新函数
+
+  }, {
+    key: "update",
+    value: function update(node, vm, exp, dir) {
+      var updateFn = this[dir + 'Updater']; // 初始化
+
+      updateFn && updateFn(node, vm[exp]); // 依赖搜集
+
+      new Watcher(vm, exp, function (value) {
+        updateFn && updateFn(node, value);
+      });
+    } // l-html 指令
+
+  }, {
+    key: "html",
+    value: function html(node, vm, exp) {
+      this.update(node, vm, exp, 'html');
+    }
+  }, {
+    key: "htmlUpdater",
+    value: function htmlUpdater(node, value) {
+      node.innerHTML = value;
+    } // l-text 指令
+
+  }, {
+    key: "text",
+    value: function text(node, vm, exp) {
+      this.update(node, vm, exp, 'text');
+    }
+  }, {
+    key: "textUpdater",
+    value: function textUpdater(node, value) {
+      node.textContent = value;
+    } // l-model 双向数据绑定
+
+  }, {
+    key: "model",
+    value: function model(node, vm, exp) {
+      // 指定input的value值
+      this.update(node, vm, exp, 'model');
+      node.addEventListener('input', function (e) {
+        vm[exp] = e.target.value;
+      });
+    }
+  }, {
+    key: "modelUpdater",
+    value: function modelUpdater(node, value) {
+      node.value = value;
+    } // 事件处理
+
+  }, {
+    key: "eventHandle",
+    value: function eventHandle(node, vm, exp, dir) {
+      var fn = vm.$options.methods && vm.$options.methods[exp];
+
+      if (dir && fn) {
+        node.addEventListener(dir, fn.bind(vm));
+      }
+    } // 是否元素
+
+  }, {
+    key: "isElement",
+    value: function isElement(node) {
+      return node.nodeType === 1;
+    } // 是否插值文本
+
+  }, {
+    key: "isInterpolation",
+    value: function isInterpolation(node) {
+      return node.nodeType === 3 && /\{\{(.*)\}\}/.test(node.textContent);
+    } //  是否指令
+
+  }, {
+    key: "isDirective",
+    value: function isDirective(attr) {
+      return attr.indexOf('l-') === 0;
+    } //  是否事件
+
+  }, {
+    key: "isEvent",
+    value: function isEvent(attr) {
+      return attr.indexOf('@') === 0;
+    }
+  }]);
+
+  return Compile;
+}();
